@@ -1,0 +1,92 @@
+Подключение базы к supabase
+ val client = createSupabaseClient(
+            supabaseUrl = "https://frwzdxnvfejlwekzzhat.supabase.co",
+            supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyd3pkeG52ZmVqbHdla3p6aGF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTgzMTIzMTIsImV4cCI6MjAxMzg4ODMxMn0.Hcftjvx9ruC4rxSZhzjB79iU9sWVOfmkMhp87W4vBiA"
+        ) {
+            install(GoTrue)
+            install(Postgrest)
+        }
+
+Метод валидации email
+fun CharSequence?.isValidEmail():Boolean{
+    return !isNullOrEmpty() && Patterns
+        .EMAIL_ADDRESS.matcher(this).matches()
+}
+
+Метод валидации вводимых данных email
+ edit_email.addTextChangedListener(object: TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?,
+                                           p1: Int, p2: Int, p3: Int) {
+                btnLog.isEnabled=false
+            }
+            override fun onTextChanged(p0: CharSequence?,
+                                       p1: Int, p2: Int, p3: Int) {
+                if (p0.isValidEmail()){
+                    edit_email.error = null
+                    btnLog.isEnabled=true
+                }else{
+                    edit_email.error = "Введите E-mail."
+                    btnLog.isEnabled=false
+                }
+            }
+            override fun afterTextChanged(p0: Editable?) {
+                mail = edit_email.text.toString()
+            }
+        })
+
+Метод валидации вводимых данных пароль
+   override fun beforeTextChanged(p0: CharSequence?,
+                                           p1: Int, p2: Int, p3: Int) {
+                btnLog.isEnabled=false
+            }
+            override fun onTextChanged(p0: CharSequence?,
+                                       p1: Int, p2: Int, p3: Int) {
+                if (p0 != null) {
+                    if (p0.trim().length>0){
+                        edit_pass.error = null
+                        btnLog.isEnabled=true
+                    }else{
+                        edit_pass.error = "Нужно ввести пароль."
+                    }
+                }
+            }
+            override fun afterTextChanged(p0: Editable?) {
+                pass = edit_pass.text.toString()
+            }
+
+        })
+
+Логин supabase
+   lifecycleScope.launch {
+                client.gotrue.loginWith(Email) {
+                    email = mail.toString()//"test@mail.ru"//mail.toString()
+                    password =  pass.toString()//"123456"//pass.toString()
+                }
+                }
+
+Регистрация
+  lifecycleScope.launch {
+                    val user = client.gotrue.signUpWith(Email) {
+                        email = mail.toString()
+                        password =  pass.toString()
+                    }
+                    val user_id = client.gotrue.retrieveUserForCurrentSession(updateSession = true)
+                    var profile = profile(user_id.id.toString(),username=name.toString())
+                    client.postgrest["profile"].insert(profile)
+                }
+
+Обновление данных в базе(столбец)  
+   lifecycleScope.launch {
+
+                    val user = client.gotrue.retrieveUserForCurrentSession()
+                    client.postgrest["profile"].update({
+                        set("adress",adress_p.toString() )
+                    })
+                    {
+                        eq("id", user.id.toString())
+                    }
+                }
+
+Ввод данных в базу
+val city = City(name = "The Shire", countryId = 554)
+supabase.from("cities").insert(city)
