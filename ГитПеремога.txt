@@ -90,3 +90,6 @@ fun CharSequence?.isValidEmail():Boolean{
 Ввод данных в базу
 val city = City(name = "The Shire", countryId = 554)
 supabase.from("cities").insert(city)
+
+Картинки в data class:
+val image: Int
